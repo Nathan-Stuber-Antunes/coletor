@@ -1,18 +1,5 @@
 const puppeteer = require("puppeteer");
 
-/**
- * Informações do CSV
- * 
- * - Url do Perfil
- * - Nome completo
- * - Cargo
- * - Url da Empresa
- * - Nome da Empresa
- * 
- * Elemento HTML para Obter o link da Adapcon no Linkedin: document.querySelector('.top-card-link').href
- * Elemento HTML para Obter o link do site da Adapcon: document.querySelector('dd').textContent.trim()
- */
-
 async function main() {
     let urlsPerfis;
     const quantidadePaginasPesquisar=1
@@ -23,7 +10,7 @@ async function main() {
 
     urlsPerfis = await obterPerfisLinkedin(quantidadePaginasPesquisar, filtroPesquisa);
     urlsPerfis = await filtrarCargoPerfis(urlsPerfis, filtroPesquisa);
-    console.log(`\n Resultado Final: ${urlsPerfis}`)
+    console.log(urlsPerfis)
 };
 
 async function obterPerfisLinkedin(quantidadePaginasPesquisar, filtroPesquisa) {
@@ -37,9 +24,8 @@ async function obterPerfisLinkedin(quantidadePaginasPesquisar, filtroPesquisa) {
     await pagina.goto(urlPesquisa)
 
     do {
-        console.log(`Lendo Página: ${numeroPagina}...\n`)
         let urlsPagina = await obterUrlsPagina(pagina);
-
+        
         urls.push(...urlsPagina);
 
         await pagina.click('#pnnext');
@@ -71,37 +57,28 @@ async function filtrarCargoPerfis(urlsPerfis, filtroPesquisa) {
     let urlsFiltradas = new Array();
 
     for await (url of urlsPerfis) {
-        const navegador = await puppeteer.launch();
-        const pagina = await navegador.newPage();
+        let cargo = (await obterCargoAtualPerfil(url)).toLowerCase();
 
-        await pagina.setJavaScriptEnabled(false);
-        await pagina.goto(url);
-        await pagina.waitForSelector('.experience-item');
-        console.log(`Acessando página: ${url}`)
-
-        let cargo = await pagina.$eval('.experience [data-section="currentPositionsDetails"] h3', tag => tag.innerText);
-        cargo = cargo.toLowerCase();
-    
         if (cargo.includes(filtroPesquisa.cargo.toLowerCase())) {
-            let nomePerfil = await pagina.$eval('.top-card-layout__title', tag => tag.innerText);
-            let nomeEmpresa = await pagina.$eval('.top-card-link__description', tag => tag.innerText);
-            let urlLinkedinEmpresa = await pagina.$eval('.top-card-link', tag => tag.href);
-            
-            let objPerfil = {
-                "nomePerfil": nomePerfil,
-                "cargo": cargo,
-                "urlPerfil": url,
-                "nomeEmpresa": nomeEmpresa,
-                "urlEmpresa": urlEmpresa
-            }
-
-            urlsFiltradas.push(objPerfil)
+            urlsFiltradas.push(url)
         }
-        
-        await pagina.close();
-        await navegador.close();
     }
     return urlsFiltradas;
+}
+
+async function obterCargoAtualPerfil(url) {
+    const navegador = await puppeteer.launch({ headless: false });
+    const pagina = await navegador.newPage();
+     
+    await pagina.goto(url);
+    await pagina.waitForSelector('.experience-item');
+
+    let cargo = await pagina.$eval('.experience [data-section="currentPositionsDetails"] h3', tag => tag.innerText);
+    
+    await pagina.close();
+    await navegador.close();
+
+    return cargo;
 }
 
 main();
