@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const isAuthorized = require("../../auth.js")
+const isAuthorized = require("../auth.js")
 
-router.get("/products", isAuthorized, (req, res) => {
+router.get("/keyUsers", isAuthorized, (req, res) => {
     const products = [
         {
           id: 1,
