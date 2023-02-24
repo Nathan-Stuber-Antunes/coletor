@@ -1,8 +1,8 @@
 const puppeteer = require("puppeteer");
 let titles, elements, elementsArray;
 
-(async () => {
-    const browser = await puppeteer.launch();
+module.exports = async function getHTMLElements() {
+  const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
     await page.goto("https://en.wikipedia.org/wiki/Web_scraping");
@@ -14,4 +14,4 @@ let titles, elements, elementsArray;
 
     console.log(titles);
     await browser.close();
-})();
+}
