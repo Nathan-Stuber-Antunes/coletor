@@ -7,3 +7,4 @@ router.get("/keyUsers", isAuthorized, controller.keyUsers)
 router.post("/keyUsers", isAuthorized, controller.keyUsers)
 
 module.exports = router;
+//https://blog.bossabox.com/arquitetura-de-projeto-node-js-prova-de-balas/
